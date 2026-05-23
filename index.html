@@ -1,0 +1,1759 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>سِراج · Sirāj — ذكاء اصطناعي في متصفحك</title>
+<meta name="description" content="مساعد ذكي عربي مفتوح المصدر، يعمل بالكامل في متصفحك بلا خوادم وبلا تتبع.">
+<meta name="theme-color" content="#1a1f3a">
+
+<!-- PWA -->
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" type="image/png" href="./icons/favicon.png">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+<!-- خطوط -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --ink: #1a1f3a;
+    --ink-soft: #2a3050;
+    --gold: #b8935a;
+    --gold-deep: #8f6f3e;
+    --cream: #f5efe1;
+    --cream-soft: #faf6ed;
+    --paper: #fffdf7;
+    --rust: #a04a2a;
+    --sage: #6b8068;
+    --hairline: #d9cfb5;
+    --shadow-soft: 0 1px 2px rgba(26,31,58,0.04), 0 4px 12px rgba(26,31,58,0.06);
+    --shadow-deep: 0 4px 20px rgba(26,31,58,0.08), 0 12px 40px rgba(26,31,58,0.12);
+    --font-display: 'Amiri', 'Times New Roman', serif;
+    --font-body: 'Tajawal', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--cream);
+    color: var(--ink);
+    line-height: 1.7;
+    font-size: 16px;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background-image:
+      radial-gradient(circle at 25% 10%, rgba(184,147,90,0.04) 0%, transparent 40%),
+      radial-gradient(circle at 75% 90%, rgba(26,31,58,0.03) 0%, transparent 40%);
+  }
+
+  /* ============== الشريط العلوي ============== */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(245,239,225,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--hairline);
+    padding: 14px 24px;
+  }
+  .topbar-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--ink); color: var(--gold);
+    font-family: var(--font-display); font-size: 22px;
+    border-radius: 8px; position: relative;
+  }
+  .brand-mark::after {
+    content: ''; position: absolute; inset: 3px;
+    border: 1px solid var(--gold); border-radius: 5px; opacity: 0.4;
+  }
+  .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+  .brand-name {
+    font-family: var(--font-display); font-size: 22px; font-weight: 700;
+    color: var(--ink); letter-spacing: -0.5px;
+  }
+  .brand-tag {
+    font-size: 11px; color: var(--gold-deep); letter-spacing: 1.5px;
+    text-transform: uppercase; margin-top: 2px;
+  }
+  .topbar-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .icon-btn {
+    background: transparent; border: 1px solid var(--hairline);
+    color: var(--ink-soft); cursor: pointer;
+    padding: 8px 14px; border-radius: 6px;
+    font-family: var(--font-body); font-size: 13px;
+    transition: all 0.2s ease;
+  }
+  .icon-btn:hover { background: var(--paper); border-color: var(--gold); color: var(--ink); }
+  .icon-btn.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+
+  /* ============== الحاوية الرئيسية ============== */
+  .container {
+    max-width: 880px; margin: 0 auto;
+    padding: 40px 24px 120px;
+  }
+
+  /* ============== شاشة الترحيب ============== */
+  .hero {
+    text-align: center; padding: 60px 0 50px;
+    border-bottom: 1px solid var(--hairline);
+    margin-bottom: 40px;
+  }
+  .hero::before {
+    content: '۞'; display: block;
+    font-size: 32px; color: var(--gold);
+    margin-bottom: 24px; opacity: 0.6;
+  }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 6vw, 56px);
+    color: var(--ink); font-weight: 700;
+    margin-bottom: 12px; letter-spacing: -1px;
+  }
+  .hero .latin {
+    font-family: var(--font-display);
+    font-size: 22px; color: var(--gold-deep);
+    font-style: italic; margin-bottom: 24px;
+  }
+  .hero p {
+    font-size: 17px; color: var(--ink-soft);
+    max-width: 540px; margin: 0 auto; line-height: 1.8;
+  }
+
+  /* ============== لوحة الحالة ============== */
+  .status-panel {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 12px; padding: 28px;
+    margin-bottom: 32px; box-shadow: var(--shadow-soft);
+  }
+  .status-panel.loading { border-color: var(--gold); }
+  .status-panel.ready { border-color: var(--sage); }
+  .status-panel.error { border-color: var(--rust); }
+  .status-header { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .status-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 0 4px rgba(184,147,90,0.2);
+    flex-shrink: 0;
+  }
+  .status-dot.ready { background: var(--sage); box-shadow: 0 0 0 4px rgba(107,128,104,0.2); }
+  .status-dot.error { background: var(--rust); box-shadow: 0 0 0 4px rgba(160,74,42,0.2); }
+  .status-dot.loading { animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.6; transform: scale(1.2); }
+  }
+  .status-title { font-size: 18px; font-weight: 500; color: var(--ink); }
+  .status-detail { color: var(--ink-soft); font-size: 14px; margin-top: 4px; }
+  .progress-bar {
+    width: 100%; height: 6px; background: var(--cream);
+    border-radius: 100px; overflow: hidden; margin-top: 16px;
+  }
+  .progress-fill {
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--gold), var(--gold-deep));
+    border-radius: 100px; transition: width 0.3s ease;
+  }
+  .progress-text {
+    font-family: var(--font-mono); font-size: 12px;
+    color: var(--ink-soft); margin-top: 8px;
+    direction: ltr; text-align: left;
+  }
+
+  /* ============== اختيار النموذج ============== */
+  .model-picker {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px; margin-top: 20px;
+  }
+  .model-card {
+    background: var(--cream-soft);
+    border: 1.5px solid var(--hairline);
+    border-radius: 10px; padding: 18px;
+    cursor: pointer; transition: all 0.2s ease;
+  }
+  .model-card:hover {
+    border-color: var(--gold); transform: translateY(-2px);
+    box-shadow: var(--shadow-soft);
+  }
+  .model-card.selected {
+    background: var(--ink); border-color: var(--gold); color: var(--paper);
+  }
+  .model-card.selected .model-meta { color: var(--gold); }
+  .model-card.selected .model-size { color: rgba(255,253,247,0.7); }
+  .model-card { position: relative; }
+  .model-card .rec-badge {
+    position: absolute;
+    top: -8px;
+    left: 12px;
+    background: var(--sage);
+    color: var(--paper);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 3px 10px;
+    border-radius: 100px;
+    box-shadow: 0 2px 6px rgba(107,128,104,0.3);
+  }
+  .model-card .fit-warning {
+    position: absolute;
+    top: -8px;
+    right: 12px;
+    background: var(--gold-deep);
+    color: var(--paper);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 3px 10px;
+    border-radius: 100px;
+  }
+  .model-card .fit-warning.high {
+    background: var(--rust);
+  }
+
+  /* شارة توصية الجهاز */
+  .device-rec {
+    background: linear-gradient(135deg, var(--cream-soft) 0%, var(--paper) 100%);
+    border: 1px solid var(--gold);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-top: 18px;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    box-shadow: 0 1px 3px rgba(184,147,90,0.1);
+  }
+  .device-rec-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--gold);
+    color: var(--ink);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .device-rec-text {
+    flex: 1;
+    line-height: 1.6;
+  }
+  .device-rec-title {
+    font-weight: 700;
+    color: var(--ink);
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+  .device-rec-detail {
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .device-rec-warnings {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--hairline);
+    font-size: 12px;
+    color: var(--gold-deep);
+  }
+  .device-rec-warnings ul {
+    list-style: none;
+    padding: 0;
+    margin: 4px 0 0 0;
+  }
+  .device-rec-warnings li {
+    padding: 2px 0;
+  }
+  .device-rec-warnings li::before {
+    content: '⚠ ';
+  }
+
+  .model-name { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+  .model-meta {
+    font-size: 12px; color: var(--gold-deep);
+    letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 10px;
+  }
+  .model-size {
+    font-family: var(--font-mono); font-size: 13px;
+    color: var(--ink-soft); direction: ltr; text-align: right;
+  }
+  .model-desc { font-size: 13px; line-height: 1.6; margin-top: 8px; opacity: 0.85; }
+
+  /* ============== الأزرار ============== */
+  .btn {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--ink); color: var(--paper);
+    border: none; cursor: pointer;
+    padding: 14px 28px; border-radius: 8px;
+    font-family: var(--font-body); font-size: 15px; font-weight: 500;
+    transition: all 0.2s ease; margin-top: 20px;
+  }
+  .btn:hover {
+    background: var(--ink-soft); transform: translateY(-1px);
+    box-shadow: var(--shadow-deep);
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* ============== الشريط الجانبي للمحادثات المحفوظة ============== */
+  .sidebar {
+    position: fixed; top: 0; right: -320px;
+    width: 320px; height: 100vh;
+    background: var(--paper);
+    border-left: 1px solid var(--hairline);
+    box-shadow: var(--shadow-deep);
+    transition: right 0.3s ease;
+    z-index: 200;
+    display: flex; flex-direction: column;
+  }
+  .sidebar.open { right: 0; }
+  .sidebar-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--hairline);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .sidebar-header h3 {
+    font-family: var(--font-display); font-size: 20px;
+    color: var(--ink); font-weight: 700;
+  }
+  .sidebar-list {
+    flex: 1; overflow-y: auto;
+    padding: 12px;
+  }
+  .conv-item {
+    padding: 12px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 6px;
+    transition: all 0.15s ease;
+    border: 1px solid transparent;
+    position: relative;
+  }
+  .conv-item:hover { background: var(--cream-soft); border-color: var(--hairline); }
+  .conv-item.active { background: var(--cream); border-color: var(--gold); }
+  .conv-title {
+    font-size: 14px; font-weight: 500; color: var(--ink);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    margin-bottom: 4px;
+  }
+  .conv-meta {
+    font-size: 11px; color: var(--ink-soft);
+    font-family: var(--font-mono); direction: ltr; text-align: right;
+  }
+  .conv-delete {
+    position: absolute; left: 8px; top: 50%; transform: translateY(-50%);
+    background: transparent; border: none; cursor: pointer;
+    color: var(--rust); font-size: 14px; opacity: 0;
+    padding: 4px 8px; border-radius: 4px;
+    transition: opacity 0.15s;
+  }
+  .conv-item:hover .conv-delete { opacity: 0.6; }
+  .conv-delete:hover { opacity: 1; background: rgba(160,74,42,0.1); }
+  .sidebar-footer {
+    padding: 14px 20px;
+    border-top: 1px solid var(--hairline);
+    font-size: 12px; color: var(--ink-soft);
+  }
+  .sidebar-overlay {
+    position: fixed; inset: 0;
+    background: rgba(26,31,58,0.3);
+    backdrop-filter: blur(2px);
+    z-index: 150;
+    display: none;
+  }
+  .sidebar-overlay.show { display: block; }
+
+  /* ============== منطقة المحادثة ============== */
+  .chat-area { display: none; }
+  .chat-area.active { display: block; }
+  .messages { min-height: 200px; margin-bottom: 24px; }
+  .msg { margin-bottom: 20px; animation: fadeUp 0.4s ease; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .msg-label {
+    font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--gold-deep); font-weight: 700; margin-bottom: 6px;
+  }
+  .msg-user .msg-label { color: var(--ink-soft); }
+  .msg-body {
+    padding: 14px 18px; border-radius: 10px;
+    font-size: 15px; line-height: 1.85;
+    white-space: pre-wrap; word-wrap: break-word;
+  }
+  .msg-user .msg-body {
+    background: var(--ink); color: var(--paper);
+    border-bottom-right-radius: 2px;
+  }
+  .msg-assistant .msg-body {
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-bottom-left-radius: 2px;
+  }
+  .msg-assistant .msg-body::after {
+    content: ''; display: inline-block;
+    width: 8px; height: 16px;
+    background: var(--gold); margin-right: 4px;
+    vertical-align: text-bottom;
+    animation: blink 1s infinite; opacity: 0;
+  }
+  .msg-assistant.streaming .msg-body::after { opacity: 1; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* مراجع RAG داخل الرسالة */
+  .msg-refs {
+    margin-top: 10px; padding: 12px 14px;
+    background: var(--cream-soft);
+    border: 1px solid var(--hairline);
+    border-right: 3px solid var(--gold);
+    border-radius: 8px;
+    font-size: 13px; color: var(--ink-soft);
+    line-height: 1.7;
+  }
+  .msg-refs-title {
+    font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--gold-deep); font-weight: 700; margin-bottom: 8px;
+  }
+  .msg-refs ul { list-style: none; padding: 0; }
+  .msg-refs li {
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--hairline);
+  }
+  .msg-refs li:last-child { border-bottom: none; }
+  .msg-refs .ref-source {
+    font-weight: 600; color: var(--ink);
+    font-family: var(--font-display); font-size: 14px;
+  }
+  .msg-refs .ref-text {
+    font-family: var(--font-display); font-size: 14px;
+    color: var(--ink); margin-top: 4px;
+  }
+
+  /* تحذيرات الفلتر */
+  .msg-warning {
+    margin-top: 10px; padding: 10px 14px;
+    background: #fef3e9;
+    border: 1px solid #f0c890;
+    border-right: 3px solid var(--gold-deep);
+    border-radius: 8px;
+    font-size: 13px; color: #6b4818;
+    line-height: 1.6;
+  }
+  .msg-warning::before { content: '⚠ '; }
+
+  /* ============== صندوق الإدخال ============== */
+  .input-area {
+    position: sticky; bottom: 20px;
+    background: var(--cream); padding-top: 12px;
+    border-top: 1px solid var(--hairline); margin-top: 24px;
+  }
+  .input-shell {
+    background: var(--paper);
+    border: 1.5px solid var(--hairline);
+    border-radius: 14px; padding: 6px;
+    display: flex; gap: 6px;
+    box-shadow: var(--shadow-soft);
+    transition: border-color 0.2s ease;
+  }
+  .input-shell:focus-within { border-color: var(--gold); }
+  textarea {
+    flex: 1; background: transparent;
+    border: none; outline: none;
+    padding: 12px 14px;
+    font-family: var(--font-body); font-size: 15px;
+    color: var(--ink); resize: none;
+    max-height: 160px; line-height: 1.6;
+  }
+  .send-btn {
+    background: var(--ink); color: var(--paper);
+    border: none; cursor: pointer;
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; align-self: flex-end;
+    transition: all 0.2s ease;
+  }
+  .send-btn:hover:not(:disabled) { background: var(--gold-deep); }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .input-hint {
+    font-size: 12px; color: var(--ink-soft);
+    margin-top: 8px; text-align: center; opacity: 0.7;
+  }
+
+  /* ============== تذييل ============== */
+  .footer-banner {
+    background: var(--cream-soft);
+    border: 1px solid var(--hairline);
+    border-right: 3px solid var(--gold);
+    border-radius: 8px; padding: 14px 18px;
+    font-size: 13px; color: var(--ink-soft);
+    margin-top: 20px; line-height: 1.7;
+  }
+  .footer-banner strong { color: var(--ink); }
+  footer {
+    max-width: 880px; margin: 60px auto 40px;
+    padding: 24px; text-align: center;
+    border-top: 1px solid var(--hairline);
+    color: var(--ink-soft); font-size: 13px;
+  }
+  footer a {
+    color: var(--gold-deep); text-decoration: none;
+    border-bottom: 1px dashed var(--gold);
+  }
+  footer a:hover { color: var(--ink); }
+  .verse {
+    font-family: var(--font-display); font-size: 18px;
+    color: var(--ink); margin: 16px 0 8px;
+  }
+  .verse-ref { font-size: 12px; color: var(--gold-deep); letter-spacing: 1px; }
+
+  /* ============== شارة تثبيت PWA ============== */
+  .install-prompt {
+    position: fixed; bottom: 20px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink); color: var(--paper);
+    padding: 14px 20px; border-radius: 12px;
+    box-shadow: var(--shadow-deep);
+    display: none; align-items: center; gap: 14px;
+    z-index: 300; max-width: 90%;
+    animation: slideUp 0.3s ease;
+  }
+  .install-prompt.show { display: flex; }
+  @keyframes slideUp {
+    from { transform: translate(-50%, 20px); opacity: 0; }
+    to { transform: translate(-50%, 0); opacity: 1; }
+  }
+  .install-prompt button {
+    background: var(--gold); color: var(--ink);
+    border: none; cursor: pointer;
+    padding: 8px 16px; border-radius: 6px;
+    font-family: var(--font-body); font-weight: 500;
+  }
+  .install-prompt .close-btn {
+    background: transparent; color: var(--paper);
+    border: 1px solid rgba(255,253,247,0.3);
+  }
+
+  /* ============== مؤشر اتصال ============== */
+  .offline-badge {
+    position: fixed; top: 80px; right: 20px;
+    background: var(--gold); color: var(--ink);
+    padding: 6px 12px; border-radius: 6px;
+    font-size: 12px; font-weight: 500;
+    box-shadow: var(--shadow-soft);
+    display: none; z-index: 90;
+  }
+  .offline-badge.show { display: block; }
+
+  /* ============== بحث في الشريط الجانبي ============== */
+  .sidebar-search {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .sidebar-search-input {
+    width: 100%;
+    background: var(--cream-soft);
+    border: 1px solid var(--hairline);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .sidebar-search-input:focus {
+    border-color: var(--gold);
+    background: var(--paper);
+  }
+  .sidebar-search-input::placeholder {
+    color: var(--ink-soft);
+    opacity: 0.6;
+  }
+  .conv-snippet {
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+    line-height: 1.5;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .conv-snippet mark {
+    background: rgba(184, 147, 90, 0.3);
+    color: var(--ink);
+    padding: 0 2px;
+    border-radius: 2px;
+  }
+  .search-no-results {
+    text-align: center;
+    color: var(--ink-soft);
+    padding: 30px 20px;
+    font-size: 13px;
+  }
+
+  /* ============== شريط تصدير المحادثة ============== */
+  .conv-actions {
+    display: flex;
+    gap: 6px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--hairline);
+    background: var(--cream-soft);
+  }
+  .conv-action-btn {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--hairline);
+    color: var(--ink-soft);
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    transition: all 0.15s;
+  }
+  .conv-action-btn:hover {
+    background: var(--paper);
+    border-color: var(--gold);
+    color: var(--ink);
+  }
+
+  /* ============== مؤشر الموارد الحي ============== */
+  .resource-monitor {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 8px 14px;
+    border-radius: 100px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    box-shadow: var(--shadow-soft);
+    z-index: 90;
+    direction: ltr;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .resource-monitor.visible {
+    opacity: 0.85;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .resource-monitor:hover {
+    opacity: 1;
+  }
+  .resource-monitor .res-item {
+    display: flex; align-items: center; gap: 4px;
+    white-space: nowrap;
+  }
+  .resource-monitor .res-divider {
+    width: 1px; height: 12px;
+    background: rgba(255,253,247,0.3);
+  }
+  .resource-monitor .res-icon {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--sage);
+  }
+  .resource-monitor .res-icon.warn { background: var(--gold); }
+  .resource-monitor .res-icon.high { background: var(--rust); }
+
+  /* ============== شارة المرجع (قرآن/حديث) ============== */
+  .ref-type-badge {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    padding: 2px 8px;
+    border-radius: 100px;
+    margin-left: 6px;
+    font-family: var(--font-body);
+    font-weight: 500;
+  }
+  .ref-type-badge.quran {
+    background: rgba(107, 128, 104, 0.15);
+    color: var(--sage);
+  }
+  .ref-type-badge.hadith {
+    background: rgba(184, 147, 90, 0.15);
+    color: var(--gold-deep);
+  }
+  .ref-narrator {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+    font-style: italic;
+  }
+
+  /* ============== Modal تصدير ============== */
+  .export-options {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .export-option {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: var(--cream-soft);
+    border: 1.5px solid var(--hairline);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: var(--font-body);
+    text-align: right;
+  }
+  .export-option:hover {
+    border-color: var(--gold);
+    transform: translateX(-3px);
+    background: var(--paper);
+  }
+  .export-option-icon {
+    width: 36px; height: 36px;
+    background: var(--ink);
+    color: var(--gold);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .export-option-info {
+    flex: 1;
+  }
+  .export-option-title {
+    font-weight: 600;
+    color: var(--ink);
+    font-size: 14px;
+  }
+  .export-option-desc {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+
+  /* ============== تجاوب ============== */
+  @media (max-width: 600px) {
+    .container { padding: 24px 16px 100px; }
+    .hero { padding: 30px 0; }
+    .hero h1 { font-size: 36px; }
+    .status-panel { padding: 20px; }
+    .model-picker { grid-template-columns: 1fr; }
+    .sidebar { width: 280px; right: -280px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- شارة وضع عدم الاتصال -->
+<div class="offline-badge" id="offlineBadge">⊘ تعمل دون اتصال</div>
+
+<!-- شارة تثبيت PWA -->
+<div class="install-prompt" id="installPrompt">
+  <span>ثبّت سِراج كتطبيق على جهازك</span>
+  <button onclick="installPWA()">تثبيت</button>
+  <button class="close-btn" onclick="dismissInstall()">لاحقاً</button>
+</div>
+
+<!-- مؤشر الموارد الحي -->
+<div class="resource-monitor" id="resourceMonitor" title="استهلاك موارد جهازك الآن">
+  <span class="res-item">
+    <span class="res-icon" id="ramIcon"></span>
+    <span id="ramText">--</span>
+  </span>
+  <span class="res-divider" id="batteryDivider" style="display:none;"></span>
+  <span class="res-item" id="batteryItem" style="display:none;">
+    <span id="batteryText">--</span>
+  </span>
+</div>
+
+<!-- الشريط الجانبي للمحادثات -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <h3>المحادثات المحفوظة</h3>
+    <button class="icon-btn" onclick="toggleSidebar()">إغلاق</button>
+  </div>
+  <div class="sidebar-search">
+    <input type="text"
+           class="sidebar-search-input"
+           id="convSearchInput"
+           placeholder="🔍 بحث في المحادثات..."
+           oninput="onSearchInput()">
+  </div>
+  <div class="sidebar-list" id="convList">
+    <p style="text-align:center; color: var(--ink-soft); padding: 20px; font-size: 14px;">
+      لا توجد محادثات بعد.
+    </p>
+  </div>
+  <div class="conv-actions" id="convActions" style="display:none;">
+    <button class="conv-action-btn" onclick="exportCurrentConversation()" title="تصدير المحادثة الحالية">
+      ⤓ تصدير
+    </button>
+    <button class="conv-action-btn" onclick="copyCurrentConversation()" title="نسخ المحادثة">
+      ⎘ نسخ
+    </button>
+  </div>
+  <div class="sidebar-footer">
+    تُحفظ المحادثات في متصفحك فقط، ولا تُرسَل إلى أي خادم.
+  </div>
+</aside>
+
+<!-- الشريط العلوي -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark">س</div>
+      <div class="brand-text">
+        <span class="brand-name">سِراج</span>
+        <span class="brand-tag">Sirāj · v0.4 alpha</span>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button class="icon-btn" id="convBtn" onclick="toggleSidebar()" style="display:none;">المحادثات</button>
+      <button class="icon-btn" id="newConvBtn" onclick="newConversation()" style="display:none;">محادثة جديدة</button>
+      <button class="icon-btn" id="exportBtn" onclick="openExportModal()" style="display:none;">⤓ تصدير</button>
+      <button class="icon-btn" onclick="showDeviceInfo()">جهازي</button>
+      <button class="icon-btn" onclick="showAbout()">عن المشروع</button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- شاشة الترحيب -->
+  <section class="hero" id="hero">
+    <h1>ذكاء اصطناعي في متصفحك</h1>
+    <div class="latin">No servers · No tracking · No subscriptions</div>
+    <p>
+      مساعد ذكي يعمل بالكامل على جهازك. بعد التحميل الأول، لن يغادر سؤالك متصفحك أبداً.
+      مفتوح المصدر، ومجاني للأبد، ومتاح لكل طالب علم في كل قرية.
+    </p>
+  </section>
+
+  <!-- لوحة الحالة -->
+  <section class="status-panel" id="statusPanel">
+    <div class="status-header">
+      <div class="status-dot" id="statusDot"></div>
+      <div>
+        <div class="status-title" id="statusTitle">اختر نموذجاً لتبدأ</div>
+        <div class="status-detail" id="statusDetail">
+          سيُحمَّل النموذج مرة واحدة فقط ويُحفظ على جهازك للزيارات القادمة.
+        </div>
+      </div>
+    </div>
+
+    <div id="progressContainer" style="display:none;">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="progress-text" id="progressText">0%</div>
+    </div>
+
+    <!-- شارة توصية الجهاز -->
+    <div class="device-rec" id="deviceRec" style="display:none;">
+      <div class="device-rec-icon">✦</div>
+      <div class="device-rec-text">
+        <div class="device-rec-title" id="deviceRecTitle">جارٍ فحص جهازك...</div>
+        <div class="device-rec-detail" id="deviceRecDetail"></div>
+      </div>
+    </div>
+
+    <div class="model-picker" id="modelPicker">
+      <div class="model-card" data-model="Llama-3.2-1B-Instruct-q4f16_1-MLC">
+        <div class="model-name">صغير وسريع</div>
+        <div class="model-meta">Llama 3.2 · 1B</div>
+        <div class="model-size">~ 700 MB</div>
+        <div class="model-desc">يعمل على معظم الأجهزة. مناسب للمحادثة العامة والأسئلة البسيطة.</div>
+      </div>
+      <div class="model-card selected" data-model="Qwen2.5-3B-Instruct-q4f16_1-MLC">
+        <div class="model-name">متوازن (موصى به)</div>
+        <div class="model-meta">Qwen 2.5 · 3B</div>
+        <div class="model-size">~ 1.9 GB</div>
+        <div class="model-desc">أفضل توازن بين الجودة والسرعة. يدعم العربية بشكل ممتاز.</div>
+      </div>
+      <div class="model-card" data-model="Qwen2.5-7B-Instruct-q4f16_1-MLC">
+        <div class="model-name">قوي ومُتقن</div>
+        <div class="model-meta">Qwen 2.5 · 7B</div>
+        <div class="model-size">~ 4.2 GB</div>
+        <div class="model-desc">للأجهزة القوية. جودة أعلى للمهام المعقدة والترجمة.</div>
+      </div>
+    </div>
+
+    <button class="btn" id="loadBtn" onclick="loadModel()">
+      تحميل النموذج وبدء المحادثة
+      <span style="font-size: 18px; transform: scaleX(-1); display: inline-block;">←</span>
+    </button>
+  </section>
+
+  <!-- منطقة المحادثة -->
+  <section class="chat-area" id="chatArea">
+    <div class="messages" id="messages"></div>
+
+    <div class="footer-banner">
+      <strong>تنويه دائم:</strong>
+      سِراج أداة معرفية مساعدة، وليس عالماً ولا مفتياً. في المسائل الشرعية والطبية والقانونية الجادة،
+      يجب الرجوع إلى أهل الاختصاص بأشخاصهم. الإجابات قد تحتوي على أخطاء.
+    </div>
+
+    <div class="input-area">
+      <div class="input-shell">
+        <textarea
+          id="userInput"
+          placeholder="اكتب سؤالك هنا... (Shift+Enter للسطر الجديد، Enter للإرسال)"
+          rows="1"
+          onkeydown="handleKey(event)"
+          oninput="autoResize(this)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()" disabled>
+          <span style="transform: scaleX(-1); display: inline-block;">➤</span>
+        </button>
+      </div>
+      <div class="input-hint" id="inputHint">جاهز لاستقبال أسئلتك</div>
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="verse">﴿ وَجَعَلَ الشَّمْسَ سِرَاجًا ﴾</div>
+  <div class="verse-ref">[ نوح: 16 ]</div>
+  <div style="margin-top: 20px;">
+    مفتوح المصدر تحت <strong>Apache 2.0</strong> ·
+    <a href="#" onclick="showAbout(); return false;">عن المشروع</a>
+  </div>
+</footer>
+
+<!-- ============== التطبيق ============== -->
+<script type="module">
+  import * as webllm from "https://esm.run/@mlc-ai/web-llm";
+  import { TinyRAG, ContentFilter } from "./assets/rag.js";
+  import { Modal, DeviceDetector, pruneContext, estimateTokens } from "./assets/utils.js";
+  import { ChatExporter, ConversationSearch, ResourceMonitor } from "./assets/chat-utils.js";
+
+  // ==================== الحالة ====================
+  let engine = null;
+  let selectedModel = "Qwen2.5-3B-Instruct-q4f16_1-MLC";
+  let conversationHistory = [];
+  let currentConvId = null;
+  let rag = new TinyRAG();
+  let filter = new ContentFilter();
+  let detector = new DeviceDetector();
+  let deviceRecommendation = null;
+  let deferredInstallPrompt = null;
+  let resourceMonitor = new ResourceMonitor();
+  let searchQuery = '';
+
+  // ثوابت تقليم السياق
+  const CONTEXT_LIMITS = {
+    maxTokens: 3000,
+    minKeepPairs: 3,
+    reserveTokens: 800,
+  };
+
+  // ==================== التوجيه ====================
+  const SYSTEM_PROMPT = `أنت "سِراج"، مساعد ذكي عربي. التزم بالقواعد التالية:
+
+1. أجب دائماً بالعربية الفصحى الواضحة، إلا إذا طُلب منك لغة أخرى صراحة.
+2. كن صادقاً ومتواضعاً: إن لم تعرف الإجابة، قلها بوضوح ولا تختلق.
+3. في المسائل الشرعية، إذا قُدمت لك مراجع قرآنية، استند إليها واذكر مصدرها كاملاً.
+4. أكّد دائماً أنك أداة مساعدة لا تُغني عن سؤال أهل العلم في المسائل الجادة.
+5. في المسائل الطبية والقانونية، أحِل دائماً إلى المختصين.
+6. كن مختصراً ومفيداً. لا تُطل بلا حاجة.
+7. لا تتظاهر بأنك إنسان. أنت برنامج ذكي يعمل في متصفح المستخدم.`;
+
+  // ==================== Service Worker ====================
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('[Sirāj] SW registered, scope:', reg.scope))
+        .catch(err => console.warn('[Sirāj] SW registration failed:', err));
+    });
+  }
+
+  // مؤشر الاتصال
+  function updateOnlineStatus() {
+    document.getElementById('offlineBadge').classList.toggle('show', !navigator.onLine);
+  }
+  window.addEventListener('online', updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+  updateOnlineStatus();
+
+  // ==================== PWA Install ====================
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    // نعرض الزر بعد دقيقة من الاستخدام (تجربة أفضل)
+    setTimeout(() => {
+      if (!localStorage.getItem('siraj-install-dismissed')) {
+        document.getElementById('installPrompt').classList.add('show');
+      }
+    }, 60000);
+  });
+
+  window.installPWA = async function() {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    console.log('[Sirāj] Install:', outcome);
+    deferredInstallPrompt = null;
+    document.getElementById('installPrompt').classList.remove('show');
+  };
+
+  window.dismissInstall = function() {
+    document.getElementById('installPrompt').classList.remove('show');
+    localStorage.setItem('siraj-install-dismissed', '1');
+  };
+
+  // ==================== تحميل RAG في الخلفية ====================
+  rag.load().then(ok => {
+    if (ok) console.log('[Sirāj] RAG ready');
+  });
+
+  // ==================== كشف قدرات الجهاز ====================
+  (async () => {
+    try {
+      await detector.detect();
+      deviceRecommendation = detector.recommend();
+      applyDeviceRecommendation();
+      updateModelFitIndicators();
+    } catch (err) {
+      console.warn('[Sirāj] Device detection failed:', err);
+    }
+  })();
+
+  function applyDeviceRecommendation() {
+    const recEl = document.getElementById('deviceRec');
+    const titleEl = document.getElementById('deviceRecTitle');
+    const detailEl = document.getElementById('deviceRecDetail');
+
+    if (!deviceRecommendation) return;
+
+    recEl.style.display = 'flex';
+
+    // إن لم يكن WebGPU مدعوماً
+    if (!deviceRecommendation.canRun) {
+      recEl.style.borderColor = 'var(--rust)';
+      recEl.querySelector('.device-rec-icon').style.background = 'var(--rust)';
+      recEl.querySelector('.device-rec-icon').style.color = 'var(--paper)';
+      recEl.querySelector('.device-rec-icon').textContent = '⊘';
+      titleEl.textContent = deviceRecommendation.reason;
+      detailEl.innerHTML = deviceRecommendation.warnings.join('<br>');
+      return;
+    }
+
+    titleEl.textContent = deviceRecommendation.reason;
+
+    let detailHTML = '';
+    if (deviceRecommendation.recommended) {
+      const modelNames = {
+        'Llama-3.2-1B-Instruct-q4f16_1-MLC': 'الصغير والسريع (Llama 3.2 1B)',
+        'Qwen2.5-3B-Instruct-q4f16_1-MLC': 'المتوازن (Qwen 2.5 3B)',
+        'Qwen2.5-7B-Instruct-q4f16_1-MLC': 'القوي والمُتقن (Qwen 2.5 7B)',
+      };
+      detailHTML = `النموذج الموصى به: <strong>${modelNames[deviceRecommendation.recommended]}</strong>`;
+    }
+
+    if (deviceRecommendation.warnings && deviceRecommendation.warnings.length > 0) {
+      detailHTML += `
+        <div class="device-rec-warnings">
+          <strong>تنبيهات:</strong>
+          <ul>
+            ${deviceRecommendation.warnings.map(w => `<li>${w}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    detailEl.innerHTML = detailHTML;
+
+    // نُطبّق التوصية تلقائياً (يمكن للمستخدم تغييرها)
+    if (deviceRecommendation.recommended) {
+      selectedModel = deviceRecommendation.recommended;
+      document.querySelectorAll('.model-card').forEach(c => {
+        c.classList.toggle('selected', c.dataset.model === selectedModel);
+      });
+    }
+  }
+
+  function updateModelFitIndicators() {
+    // نُضيف شارات على كل بطاقة نموذج
+    document.querySelectorAll('.model-card').forEach(card => {
+      // إزالة الشارات السابقة
+      card.querySelectorAll('.rec-badge, .fit-warning').forEach(el => el.remove());
+
+      const modelId = card.dataset.model;
+      // شارة الموصى به
+      if (deviceRecommendation && deviceRecommendation.recommended === modelId) {
+        const badge = document.createElement('span');
+        badge.className = 'rec-badge';
+        badge.textContent = '★ موصى به لجهازك';
+        card.appendChild(badge);
+      }
+
+      // فحص ملاءمة النموذج
+      const fit = detector.checkModelFit(modelId);
+      if (!fit.suitable || fit.severity === 'medium') {
+        const warn = document.createElement('span');
+        warn.className = `fit-warning ${fit.severity}`;
+        warn.textContent = fit.severity === 'high' ? 'ثقيل على جهازك' : 'عند الحد';
+        warn.title = fit.message;
+        card.appendChild(warn);
+      }
+    });
+  }
+
+  // ==================== اختيار النموذج ====================
+  document.querySelectorAll('.model-card').forEach(card => {
+    card.addEventListener('click', async () => {
+      if (engine) return;
+      const modelId = card.dataset.model;
+
+      // فحص الملاءمة وتحذير إن لزم
+      const fit = detector.checkModelFit(modelId);
+      if (!fit.suitable && fit.severity === 'high') {
+        const confirmed = await Modal.confirm(
+          'النموذج قد لا يعمل على جهازك',
+          `<p>${fit.message}</p><p>هل تريد المتابعة على مسؤوليتك؟</p>`,
+          { icon: 'warning', confirmText: 'متابعة', cancelText: 'اختيار آخر', dangerConfirm: true }
+        );
+        if (!confirmed) return;
+      }
+
+      document.querySelectorAll('.model-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedModel = modelId;
+    });
+  });
+
+  // ==================== تحميل النموذج ====================
+  window.loadModel = async function() {
+    const statusPanel = document.getElementById('statusPanel');
+    const statusDot = document.getElementById('statusDot');
+    const statusTitle = document.getElementById('statusTitle');
+    const statusDetail = document.getElementById('statusDetail');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    const loadBtn = document.getElementById('loadBtn');
+    const modelPicker = document.getElementById('modelPicker');
+
+    if (!navigator.gpu) {
+      statusPanel.classList.add('error');
+      statusDot.classList.add('error');
+      statusTitle.textContent = 'متصفحك لا يدعم WebGPU';
+      statusDetail.innerHTML = `
+        يحتاج سِراج إلى متصفح حديث:
+        <br>• Chrome / Edge 113+
+        <br>• Safari 17+ على macOS Sonoma
+        <br>• Firefox 121+ مع تفعيل WebGPU
+      `;
+      loadBtn.style.display = 'none';
+      return;
+    }
+
+    loadBtn.disabled = true;
+    loadBtn.textContent = 'جارٍ التحميل...';
+    modelPicker.style.opacity = '0.5';
+    modelPicker.style.pointerEvents = 'none';
+    progressContainer.style.display = 'block';
+    statusPanel.classList.add('loading');
+    statusDot.classList.add('loading');
+    statusTitle.textContent = 'يجري تحميل النموذج';
+
+    try {
+      engine = await webllm.CreateMLCEngine(selectedModel, {
+        initProgressCallback: (report) => {
+          const pct = Math.round((report.progress || 0) * 100);
+          progressFill.style.width = pct + '%';
+          progressText.textContent = report.text || `${pct}%`;
+          statusDetail.textContent = pct < 100
+            ? `قد يستغرق ذلك بضع دقائق في الزيارة الأولى. لن يتكرر مرة أخرى.`
+            : `جارٍ التهيئة...`;
+        }
+      });
+
+      statusPanel.classList.remove('loading');
+      statusPanel.classList.add('ready');
+      statusDot.classList.remove('loading');
+      statusDot.classList.add('ready');
+      statusTitle.textContent = 'النموذج جاهز ✓';
+      statusDetail.textContent = `يعمل الآن على جهازك. اسأل ما شئت.`;
+      progressContainer.style.display = 'none';
+      loadBtn.style.display = 'none';
+
+      document.getElementById('chatArea').classList.add('active');
+      document.getElementById('sendBtn').disabled = false;
+      document.getElementById('convBtn').style.display = 'inline-flex';
+      document.getElementById('newConvBtn').style.display = 'inline-flex';
+      document.getElementById('exportBtn').style.display = 'inline-flex';
+      document.getElementById('userInput').focus();
+
+      renderConversationList();
+      startResourceMonitoring();
+      addMessage('assistant', 'السلام عليكم. أنا سِراج، مساعدك الذكي. اسألني فيما تشاء — في العلم، اللغة، الدين، البرمجة، أو غيرها. تذكّر أنني أداة مساعدة لا تُغني عن أهل الاختصاص في الأمور الجادة.');
+
+    } catch (err) {
+      console.error(err);
+      statusPanel.classList.remove('loading');
+      statusPanel.classList.add('error');
+      statusDot.classList.remove('loading');
+      statusDot.classList.add('error');
+      statusTitle.textContent = 'تعذّر تحميل النموذج';
+      statusDetail.textContent = err.message || 'حدث خطأ. حاول إعادة تحميل الصفحة.';
+      loadBtn.disabled = false;
+      loadBtn.textContent = 'إعادة المحاولة';
+    }
+  };
+
+  // ==================== إرسال رسالة ====================
+  window.sendMessage = async function() {
+    const input = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const inputHint = document.getElementById('inputHint');
+    const text = input.value.trim();
+    if (!text || !engine) return;
+
+    addMessage('user', text);
+    input.value = '';
+    autoResize(input);
+
+    sendBtn.disabled = true;
+    inputHint.textContent = 'سِراج يفكر...';
+
+    // ===== RAG: البحث في قاعدة المعرفة =====
+    let ragContext = '';
+    let ragResults = [];
+    if (rag.ready && rag.isReligiousQuery(text)) {
+      ragResults = rag.search(text, 3, 0.05);
+      if (ragResults.length > 0) {
+        ragContext = rag.formatAsContext(ragResults);
+      }
+    }
+
+    const assistantMsg = addMessage('assistant', '', true, ragResults);
+    const bodyEl = assistantMsg.querySelector('.msg-body');
+
+    conversationHistory.push({ role: 'user', content: text });
+
+    // ===== تقليم السياق (Sliding Window) =====
+    const pruneResult = pruneContext(conversationHistory, CONTEXT_LIMITS);
+    const prunedHistory = pruneResult.pruned;
+
+    // إخبار المستخدم بهدوء إن حدث تقليم كبير
+    if (pruneResult.droppedCount > 0 && pruneResult.droppedCount % 4 === 2) {
+      console.log(`[Sirāj] Pruned ${pruneResult.droppedCount} old messages (${pruneResult.finalTokens} tokens kept)`);
+    }
+
+    // بناء system prompt مع سياق RAG إن وُجد
+    const fullSystemPrompt = SYSTEM_PROMPT + (ragContext ? '\n\n' + ragContext : '');
+
+    const messages = [
+      { role: 'system', content: fullSystemPrompt },
+      ...prunedHistory
+    ];
+
+    try {
+      const startTime = Date.now();
+      let fullResponse = '';
+      let tokenCount = 0;
+
+      const stream = await engine.chat.completions.create({
+        messages: messages,
+        stream: true,
+        temperature: 0.7,
+        max_tokens: 800,
+      });
+
+      for await (const chunk of stream) {
+        const delta = chunk.choices[0]?.delta?.content || '';
+        if (delta) {
+          fullResponse += delta;
+          tokenCount++;
+          bodyEl.textContent = fullResponse;
+          window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+      }
+
+      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+      const tps = (tokenCount / elapsed).toFixed(1);
+
+      conversationHistory.push({ role: 'assistant', content: fullResponse });
+      assistantMsg.classList.remove('streaming');
+
+      // فحص الفلتر
+      const warnings = filter.check(fullResponse);
+      if (warnings.length > 0) {
+        const warningEl = document.createElement('div');
+        warningEl.className = 'msg-warning';
+        warningEl.textContent = warnings.map(w => w.message).join(' · ');
+        assistantMsg.appendChild(warningEl);
+      }
+
+      let hint = `تم في ${elapsed}ث · ${tps} رمز/ث`;
+      if (ragResults.length) hint += ` · ${ragResults.length} مرجع`;
+      if (pruneResult.droppedCount > 0) {
+        hint += ` · تم تقليم ${pruneResult.droppedCount} رسالة قديمة`;
+      }
+      inputHint.textContent = hint;
+
+      // حفظ المحادثة
+      saveCurrentConversation();
+
+    } catch (err) {
+      bodyEl.textContent = '⚠ حدث خطأ: ' + (err.message || 'تعذّر توليد الإجابة');
+      assistantMsg.classList.remove('streaming');
+      inputHint.textContent = 'حدث خطأ. حاول مجدداً.';
+    } finally {
+      sendBtn.disabled = false;
+      document.getElementById('userInput').focus();
+    }
+  };
+
+  // ==================== إدارة الرسائل ====================
+  function addMessage(role, content, streaming = false, ragResults = []) {
+    const messages = document.getElementById('messages');
+    const msg = document.createElement('div');
+    msg.className = `msg msg-${role}${streaming ? ' streaming' : ''}`;
+
+    let html = `
+      <div class="msg-label">${role === 'user' ? 'أنت' : 'سِراج'}</div>
+      <div class="msg-body">${escapeHTML(content)}</div>
+    `;
+
+    if (ragResults && ragResults.length > 0) {
+      html += `
+        <div class="msg-refs">
+          <div class="msg-refs-title">مراجع شرعية استُند إليها</div>
+          <ul>
+            ${ragResults.map(r => {
+              const isHadith = r.entry.type === 'hadith';
+              const typeLabel = isHadith ? 'حديث' : 'قرآن';
+              const typeBadge = `<span class="ref-type-badge ${isHadith ? 'hadith' : 'quran'}">${typeLabel}</span>`;
+              return `
+                <li>
+                  <span class="ref-source">${escapeHTML(r.entry.source)}${typeBadge}</span>
+                  <div style="font-size:12px; color: var(--ink-soft); margin-top:2px;">${escapeHTML(r.entry.ref)}</div>
+                  ${r.entry.narrator ? `<div class="ref-narrator">عن ${escapeHTML(r.entry.narrator)}</div>` : ''}
+                  <div class="ref-text">${escapeHTML(r.entry.text)}</div>
+                </li>
+              `;
+            }).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    msg.innerHTML = html;
+    messages.appendChild(msg);
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    return msg;
+  }
+
+  function escapeHTML(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  // ==================== الاختصارات ====================
+  window.handleKey = function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  window.autoResize = function(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 160) + 'px';
+  };
+
+  // ==================== إدارة المحادثات (localStorage) ====================
+  const STORAGE_KEY = 'siraj-conversations-v1';
+
+  function loadConversations() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    } catch { return []; }
+  }
+
+  function saveConversations(convs) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(convs));
+    } catch (err) {
+      console.warn('[Sirāj] Could not save:', err);
+    }
+  }
+
+  function saveCurrentConversation() {
+    if (conversationHistory.length === 0) return;
+    const convs = loadConversations();
+
+    // العنوان = أول رسالة من المستخدم (مختصرة)
+    const firstUser = conversationHistory.find(m => m.role === 'user');
+    const title = firstUser ? firstUser.content.slice(0, 60) : 'محادثة';
+
+    const conv = {
+      id: currentConvId || ('conv-' + Date.now()),
+      title,
+      messages: conversationHistory,
+      updatedAt: Date.now(),
+      model: selectedModel
+    };
+    currentConvId = conv.id;
+
+    const idx = convs.findIndex(c => c.id === conv.id);
+    if (idx >= 0) convs[idx] = conv;
+    else convs.unshift(conv);
+
+    // نحتفظ بآخر 50 محادثة فقط (حماية من امتلاء localStorage)
+    if (convs.length > 50) convs.length = 50;
+
+    saveConversations(convs);
+    renderConversationList();
+  }
+
+  function renderConversationList() {
+    const list = document.getElementById('convList');
+    const actions = document.getElementById('convActions');
+    const allConvs = loadConversations();
+
+    // إظهار أزرار التصدير فقط إن كانت هناك محادثة حالية
+    actions.style.display = (currentConvId && allConvs.find(c => c.id === currentConvId)) ? 'flex' : 'none';
+
+    if (allConvs.length === 0) {
+      list.innerHTML = `<p style="text-align:center; color: var(--ink-soft); padding: 20px; font-size: 14px;">لا توجد محادثات بعد.</p>`;
+      return;
+    }
+
+    // البحث
+    let displayed;
+    if (searchQuery && searchQuery.trim()) {
+      const results = ConversationSearch.search(allConvs, searchQuery);
+      if (results.length === 0) {
+        list.innerHTML = `<div class="search-no-results">لا توجد محادثات تطابق "${escapeHTML(searchQuery)}"</div>`;
+        return;
+      }
+      displayed = results;
+    } else {
+      displayed = allConvs.map(c => ({ conv: c, snippet: null }));
+    }
+
+    list.innerHTML = displayed.map(({ conv: c, snippet }) => {
+      const titleHTML = searchQuery
+        ? ConversationSearch.highlight(escapeHTML(c.title), searchQuery)
+        : escapeHTML(c.title);
+      const snippetHTML = snippet
+        ? `<div class="conv-snippet">${ConversationSearch.highlight(escapeHTML(snippet), searchQuery)}</div>`
+        : '';
+      return `
+        <div class="conv-item ${c.id === currentConvId ? 'active' : ''}" onclick="loadConversation('${c.id}')">
+          <div class="conv-title">${titleHTML}</div>
+          <div class="conv-meta">${formatDate(c.updatedAt)} · ${c.messages.length} رسالة</div>
+          ${snippetHTML}
+          <button class="conv-delete" onclick="event.stopPropagation(); deleteConversation('${c.id}')" title="حذف">✕</button>
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.onSearchInput = function() {
+    searchQuery = document.getElementById('convSearchInput').value;
+    renderConversationList();
+  };
+
+  function formatDate(ts) {
+    const d = new Date(ts);
+    const now = new Date();
+    const diffH = (now - d) / 3600000;
+    if (diffH < 24) return d.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+    if (diffH < 168) return d.toLocaleDateString('ar-EG', { weekday: 'short' });
+    return d.toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' });
+  }
+
+  window.loadConversation = function(id) {
+    const convs = loadConversations();
+    const conv = convs.find(c => c.id === id);
+    if (!conv) return;
+
+    currentConvId = id;
+    conversationHistory = [...conv.messages];
+
+    // إعادة عرض الرسائل
+    const messages = document.getElementById('messages');
+    messages.innerHTML = '';
+    conv.messages.forEach(m => addMessage(m.role, m.content));
+
+    toggleSidebar();
+    renderConversationList();
+    document.getElementById('userInput').focus();
+  };
+
+  window.deleteConversation = async function(id) {
+    const confirmed = await Modal.confirm(
+      'حذف المحادثة',
+      'هل تريد حذف هذه المحادثة؟ لا يمكن التراجع عن هذا الإجراء.',
+      { icon: 'danger', confirmText: 'احذف', cancelText: 'إلغاء', dangerConfirm: true }
+    );
+    if (!confirmed) return;
+    const convs = loadConversations().filter(c => c.id !== id);
+    saveConversations(convs);
+    if (currentConvId === id) newConversation();
+    renderConversationList();
+  };
+
+  window.newConversation = function() {
+    currentConvId = null;
+    conversationHistory = [];
+    document.getElementById('messages').innerHTML = '';
+    addMessage('assistant', 'محادثة جديدة. كيف يمكنني مساعدتك؟');
+    document.getElementById('userInput').focus();
+    renderConversationList();
+  };
+
+  window.toggleSidebar = function() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('show');
+  };
+
+  // ==================== مراقبة الموارد الحية ====================
+  let resourceMonitorActive = false;
+
+  async function startResourceMonitoring() {
+    if (resourceMonitorActive) return;
+    resourceMonitorActive = true;
+
+    await resourceMonitor.init();
+
+    const monitorEl = document.getElementById('resourceMonitor');
+    const ramIcon = document.getElementById('ramIcon');
+    const ramText = document.getElementById('ramText');
+    const batteryDivider = document.getElementById('batteryDivider');
+    const batteryItem = document.getElementById('batteryItem');
+    const batteryText = document.getElementById('batteryText');
+
+    resourceMonitor.start((snap) => {
+      let hasData = false;
+
+      if (snap.ram) {
+        hasData = true;
+        ramText.textContent = `${snap.ram.usedMB}MB`;
+        ramIcon.className = 'res-icon';
+        if (snap.ram.percentUsed > 80) ramIcon.classList.add('high');
+        else if (snap.ram.percentUsed > 50) ramIcon.classList.add('warn');
+      } else {
+        ramText.textContent = 'GPU نشط';
+      }
+
+      if (snap.battery) {
+        hasData = true;
+        batteryDivider.style.display = 'inline-block';
+        batteryItem.style.display = 'flex';
+        const charging = snap.battery.charging ? '⚡' : '';
+        batteryText.textContent = `🔋 ${snap.battery.level}%${charging}`;
+      }
+
+      if (hasData) {
+        monitorEl.classList.add('visible');
+      }
+    }, 2500);
+  }
+
+  // ==================== تصدير المحادثات ====================
+  window.openExportModal = async function() {
+    if (conversationHistory.length === 0) {
+      await Modal.alert('لا توجد محادثة', 'ابدأ محادثة أولاً ثم يمكنك تصديرها.', 'info');
+      return;
+    }
+
+    const html = `
+      <p>اختر صيغة التصدير:</p>
+      <div class="export-options">
+        <div class="export-option" data-format="markdown">
+          <div class="export-option-icon">MD</div>
+          <div class="export-option-info">
+            <div class="export-option-title">Markdown</div>
+            <div class="export-option-desc">للنشر في GitHub، Notion، أو القراءة بصيغة منسقة</div>
+          </div>
+        </div>
+        <div class="export-option" data-format="text">
+          <div class="export-option-icon">TXT</div>
+          <div class="export-option-info">
+            <div class="export-option-title">نص عادي</div>
+            <div class="export-option-desc">للقراءة في أي محرر نصوص</div>
+          </div>
+        </div>
+        <div class="export-option" data-format="json">
+          <div class="export-option-icon">{}</div>
+          <div class="export-option-info">
+            <div class="export-option-title">JSON</div>
+            <div class="export-option-desc">للنسخ الاحتياطي أو الاستيراد لاحقاً</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // نُظهر Modal مخصصاً، ثم نُضيف مستمعات للخيارات بعد إنشائه
+    const promise = Modal.show({
+      title: 'تصدير المحادثة',
+      icon: 'info',
+      body: html,
+      confirmText: 'إلغاء'
+    });
+
+    // نُضيف مستمعات بعد أن يُنشأ الـ Modal
+    setTimeout(() => {
+      document.querySelectorAll('.export-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+          const format = opt.dataset.format;
+          const conv = {
+            id: currentConvId || 'conv-' + Date.now(),
+            title: conversationHistory.find(m => m.role === 'user')?.content.slice(0, 60) || 'محادثة سِراج',
+            messages: conversationHistory,
+            updatedAt: Date.now(),
+            model: selectedModel,
+          };
+          try {
+            ChatExporter.export(conv, format);
+            // إغلاق Modal بطريق غير مباشر (الضغط على Cancel)
+            document.querySelector('.siraj-modal-btn.primary')?.click();
+          } catch (err) {
+            console.error('Export error:', err);
+          }
+        });
+      });
+    }, 100);
+
+    await promise;
+  };
+
+  window.exportCurrentConversation = function() {
+    openExportModal();
+  };
+
+  window.copyCurrentConversation = async function() {
+    if (conversationHistory.length === 0) {
+      await Modal.alert('لا توجد محادثة', 'ابدأ محادثة أولاً.', 'info');
+      return;
+    }
+    const conv = {
+      title: conversationHistory.find(m => m.role === 'user')?.content.slice(0, 60) || 'محادثة سِراج',
+      messages: conversationHistory,
+      updatedAt: Date.now(),
+      model: selectedModel,
+    };
+    const success = await ChatExporter.copyToClipboard(ChatExporter.toMarkdown(conv));
+    await Modal.alert(
+      success ? 'تم النسخ ✓' : 'تعذّر النسخ',
+      success ? 'تم نسخ المحادثة كنص Markdown إلى الحافظة. يمكنك لصقها في أي مكان.' : 'لم نتمكن من النسخ. حاول تحديد النص يدوياً.',
+      success ? 'success' : 'warning'
+    );
+  };
+
+  // ==================== عن المشروع ====================
+  window.showAbout = function() {
+    Modal.show({
+      title: 'سِراج · الإصدار 0.4 alpha',
+      icon: 'info',
+      body: `
+        <p>تطبيق ذكاء اصطناعي مفتوح المصدر يعمل بالكامل في متصفحك.</p>
+        <p><strong>الميزات:</strong></p>
+        <ul style="padding-right: 20px; margin: 8px 0;">
+          <li>تشغيل النموذج محلياً عبر WebGPU</li>
+          <li>عمل دون اتصال (PWA)</li>
+          <li>قاعدة معرفة (آيات وأحاديث صحيحة)</li>
+          <li>فلتر محتوى شفاف</li>
+          <li>حفظ المحادثات في متصفحك</li>
+          <li>تقليم ذكي للسياق الطويل</li>
+          <li>تصدير المحادثات (MD/TXT/JSON)</li>
+          <li>بحث في المحادثات السابقة</li>
+          <li>مراقبة موارد الجهاز الحية</li>
+        </ul>
+        <p style="margin-top: 12px; font-size: 13px;">
+          <strong>المؤسس:</strong> عادل سالم — طرابلس، ليبيا<br>
+          <strong>الترخيص:</strong> Apache 2.0
+        </p>
+      `,
+      confirmText: 'حسناً'
+    });
+  };
+
+  // ==================== معلومات الجهاز ====================
+  window.showDeviceInfo = async function() {
+    // إن لم نكن قد كشفنا بعد، نكشف الآن
+    if (!detector.info) {
+      try { await detector.detect(); } catch {}
+    }
+
+    const info = detector.info;
+    if (!info) {
+      await Modal.alert(
+        'تعذّر فحص الجهاز',
+        'لم نتمكن من الحصول على معلومات جهازك. قد يكون متصفحك يحجب هذه المعلومات لحماية خصوصيتك (وهذا أمر جيد!).',
+        'warning'
+      );
+      return;
+    }
+
+    const rec = deviceRecommendation || detector.recommend();
+    const modelNames = {
+      'Llama-3.2-1B-Instruct-q4f16_1-MLC': 'الصغير (Llama 3.2 1B)',
+      'Qwen2.5-3B-Instruct-q4f16_1-MLC': 'المتوازن (Qwen 2.5 3B)',
+      'Qwen2.5-7B-Instruct-q4f16_1-MLC': 'القوي (Qwen 2.5 7B)',
+    };
+
+    let body = `<p>${rec.canRun ? '<strong>جهازك متوافق ✓</strong>' : '<strong style="color: var(--rust);">جهازك غير متوافق ⊘</strong>'}</p>`;
+    if (rec.canRun && rec.recommended) {
+      body += `<p>النموذج الأنسب: <strong>${modelNames[rec.recommended] || rec.recommended}</strong></p>`;
+    }
+    body += detector.toHTML();
+    if (rec.warnings && rec.warnings.length > 0) {
+      body += `
+        <p style="margin-top: 14px; font-size: 13px; color: var(--gold-deep);">
+          <strong>تنبيهات:</strong>
+        </p>
+        <ul style="padding-right: 20px; margin: 4px 0; font-size: 13px;">
+          ${rec.warnings.map(w => `<li>${w}</li>`).join('')}
+        </ul>
+      `;
+    }
+    body += `
+      <p style="margin-top: 14px; font-size: 12px; color: var(--ink-soft); border-top: 1px dashed var(--hairline); padding-top: 10px;">
+        💡 هذه المعلومات لا تغادر جهازك. سِراج يستخدمها فقط لاختيار النموذج المناسب.
+      </p>
+    `;
+
+    Modal.show({
+      title: 'معلومات جهازك',
+      icon: 'info',
+      body,
+      confirmText: 'حسناً'
+    });
+  };
+</script>
+
+</body>
+</html>
